@@ -1,284 +1,223 @@
-# SumUP - Professional Document Summarizer
+# 🌟 FIDELIS - Resumidor Académico con IA Premium
 
-A modern, intuitive application for summarizing documents and extracting text from images. Built for university-level users with precision and fidelity.
+**El resumen que NO inventa. Fidelidad 100% al contenido original.**
 
-## Features
+Resumidor de textos universitarios con sistema anti-alucinación bulletproof, trazabilidad visual y modos específicos para estudiar.
 
-- **Multi-format Support**: Upload PDFs, images (with OCR), or paste plain text
-- **Faithful Summarization**: Extractive summarization algorithm that preserves original meaning
-- **OCR Technology**: Extract text from images using Tesseract.js
-- **User Authentication**: Secure account creation and login
-- **Document History**: Save and access previous summaries
-- **Adjustable Compression**: Fine-tune summary length from 10-90%
-- **Key Points Extraction**: Automatic identification of main topics
-- **Export Options**: Download summaries as PDF or TXT
-- **Share Functionality**: Generate shareable links for summaries
-- **Modern UI**: Clean, professional design with Tailwind CSS
+## 🚀 Features
 
-## Technology Stack
+- ✅ **Sistema Anti-Alucinación**: Valida cada afirmación contra el texto original
+- 🔗 **Trazabilidad Total**: Ve exactamente de dónde sale cada punto del resumen
+- 🎯 **4 Modos de Resumen**: Estudio, Breve, Profundo, Mapas Conceptuales
+- ❓ **Preguntas de Examen**: Generadas SOLO del contenido del texto
+- ⚠️ **Detección de Ambigüedades**: Alerta cuando el texto original es confuso
+- 📊 **Indicadores de Confianza**: Score de confianza por sección
+- 💾 **Histórico Completo**: Guarda todos tus resúmenes
+- 💳 **Monetización Clara**: Free (5 resúmenes) + Pro ($9.99/mes)
 
-### Frontend
-- **React 18** with TypeScript
-- **Vite** for fast development and building
-- **Tailwind CSS** for responsive design
-- **Lucide React** for icons
-- **Axios** for API communication
-- **React Router** for navigation
+## 🏗️ Stack Técnico
 
-### Backend
-- **Node.js** with Express.js
-- **TypeScript** for type safety
-- **PostgreSQL** for data persistence
-- **Tesseract.js** for OCR
-- **PDF.js** for PDF text extraction
-- **JWT** for authentication
-- **Bcrypt** for password hashing
+| Capa | Tecnología |
+|------|-----------|
+| **Frontend** | Next.js 14, React 18, TypeScript, Tailwind CSS, Framer Motion |
+| **Backend** | Next.js API Routes, TypeScript |
+| **Database** | Supabase (PostgreSQL) |
+| **Auth** | NextAuth.js + Google OAuth |
+| **AI** | Claude 3.5 Sonnet |
+| **Pagos** | Stripe |
+| **Deploy** | Vercel |
 
-## Project Structure
+## 📦 Instalación
 
-```
-SumUP/
-├── frontend/                    # React application
-│   ├── src/
-│   │   ├── components/         # React components
-│   │   ├── services/           # API services
-│   │   ├── hooks/              # Custom hooks
-│   │   ├── styles/             # CSS and Tailwind
-│   │   ├── App.tsx             # Main component
-│   │   └── main.tsx            # Entry point
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── tailwind.config.js
-│
-├── backend/                     # Node.js/Express server
-│   ├── src/
-│   │   ├── services/           # Business logic
-│   │   │   ├── summarizerService.ts    # TF-IDF summarization
-│   │   │   └── documentService.ts      # OCR & PDF extraction
-│   │   ├── controllers/        # Route handlers
-│   │   ├── middleware/         # Express middleware
-│   │   ├── routes/             # API routes
-│   │   └── server.ts           # Express server
-│   └── package.json
-│
-├── shared/                      # Shared types and utilities
-│   └── types.ts                # TypeScript type definitions
-│
-└── README.md                    # This file
-```
-
-## Installation
-
-### Prerequisites
-- Node.js 18+
-- PostgreSQL 12+
-- Git
-
-### Setup
-
-1. **Clone the repository**
 ```bash
-git clone https://github.com/m4rc3l0bizoso/sumup.git
-cd sumup
-```
+# Clone
+git clone https://github.com/tuuser/fidelis.git
+cd fidelis
 
-2. **Install dependencies**
-```bash
-# Backend
-cd backend
+# Install
 npm install
 
-# Frontend
-cd ../frontend
-npm install
+# Setup .env.local
+cp .env.example .env.local
+# Editar con tus credenciales
 
-# Return to root
-cd ..
-```
-
-3. **Environment Setup**
-
-Backend (`.env`):
-```bash
-cp backend/.env.example backend/.env
-# Edit backend/.env with your database credentials
-```
-
-Frontend (`.env`):
-```bash
-cp frontend/.env.example frontend/.env
-# Default configuration should work for local development
-```
-
-4. **Database Setup**
-```bash
-# Create PostgreSQL database
-createdb sumup
-
-# Run migrations (if available)
-cd backend
-npm run migrate
-```
-
-## Running the Application
-
-### Development Mode
-
-Terminal 1 - Backend:
-```bash
-cd backend
+# Dev server
 npm run dev
-# Server runs on http://localhost:5000
+
+# Abre http://localhost:3000
 ```
 
-Terminal 2 - Frontend:
+## 🔧 Configuración
+
+### 1. Supabase
 ```bash
-cd frontend
-npm run dev
-# App runs on http://localhost:5173
+# Crear proyecto en supabase.co
+# Obtener credenciales:
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-### Production Build
-
-Frontend:
+### 2. Google OAuth
 ```bash
-cd frontend
-npm run build
-# Output in frontend/dist/
+# Google Cloud Console → Create OAuth 2.0 credentials
+# Authorized redirect URIs:
+# - http://localhost:3000/api/auth/callback/google
+# - https://tu-dominio.vercel.app/api/auth/callback/google
+
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
 ```
 
-Backend:
+### 3. Claude API
 ```bash
-cd backend
-npm run build
-npm start
-# Server runs on configured PORT
+# https://console.anthropic.com
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-## API Documentation
+### 4. Stripe
+```bash
+# https://dashboard.stripe.com
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_ID_MONTHLY=price_...
+STRIPE_PRICE_ID_YEARLY=price_...
+```
 
-### Authentication
-- `POST /api/auth/register` - Create new account
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user
+## 📁 Estructura del Proyecto
 
-### Documents
-- `POST /api/documents/upload` - Upload document file
-- `POST /api/documents/upload-text` - Submit plain text
-- `GET /api/documents/:id` - Get document details
-- `GET /api/documents/history` - Get user's documents
+```
+src/
+├── app/                      # Next.js App Router
+│   ├── api/                 # API Routes
+│   │   ├── auth/            # NextAuth
+│   │   ├── summarize/       # Motor principal
+│   │   ├── credits/         # Sistema de créditos
+│   │   └── documents/       # CRUD documentos
+│   ├── dashboard/           # Dashboard (protegido)
+│   ├── pricing/             # Página de pricing
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx             # Landing page
+├── components/              # Componentes React
+│   ├── layout/              # Header, Sidebar, Footer
+│   ├── dashboard/           # Componentes del dashboard
+│   ├── summary/             # Mostrar resumen
+│   └── modals/              # Modales (bloqueo, upgrade)
+├── lib/                     # Lógica compartida
+│   ├── auth.ts              # NextAuth config
+│   ├── supabase.ts          # Cliente + helpers
+│   ├── claude.ts            # Motor de IA + prompts
+│   └── stripe.ts            # Cliente Stripe
+├── types/                   # TypeScript types
+├── styles/                  # CSS global + Tailwind
+└── utils/                   # Utilidades
+```
 
-### Summaries
-- `POST /api/summaries/generate` - Generate summary
-- `GET /api/summaries/:id` - Get summary details
-- `POST /api/summaries/:id/regenerate` - Regenerate with different ratio
-- `GET /api/summaries/:id/export` - Export summary
-- `POST /api/summaries/:id/share` - Create share link
+## 🎯 Cómo Funciona el Motor de IA
 
-## Summarization Algorithm
+### Sistema Anti-Alucinación
 
-SumUP uses a **TF-IDF based extractive summarization** approach:
+FIDELIS usa un sistema en 3 capas para garantizar fidelidad 100%:
 
-1. **Tokenization**: Split text into sentences and words
-2. **Scoring**: Calculate word frequency and IDF values
-3. **Ranking**: Score sentences based on content value
-4. **Selection**: Choose top sentences maintaining order
-5. **Validation**: Ensure content fidelity
+1. **Validación de Entrada**: Verifica que el usuario proporciona texto válido
+2. **Generación con Prompts Estrictos**: Claude sigue reglas anti-alucinación
+3. **Validación Post-Procesamiento**: Verifica que cada claim está en el original
 
-This approach preserves the original text and meaning, avoiding hallucinations or distortions.
+### Prompt del Sistema
 
-## Features in Detail
+```
+Tu trabajo NO es crear, interpretar, mejorar o editar.
+Tu trabajo ES SOLO extraer, estructurar y aclarar lo que YA EXISTE en el texto.
 
-### OCR Technology
-- Supports multiple languages (Spanish and English optimized)
-- Handles images at various resolutions
-- Confidence scoring for text extraction
+REGLAS ABSOLUTAS:
+- Nunca inventar
+- Preservar nuance
+- Mantener scope
+- Señalar confianza
+- Mantener trazabilidad
+```
 
-### PDF Processing
-- Text extraction from multi-page PDFs
-- Page count detection
-- Maintains document structure
+### Modos de Resumen
 
-### User Experience
-- Drag-and-drop file upload
-- Real-time character counting
-- Progress indicators
-- Responsive mobile design
-- One-click export and share
+| Modo | Uso | % Original |
+|------|-----|-----------|
+| **Study** | Preparar exámenes | 40% |
+| **Brief** | Resumen ejecutivo | 20% |
+| **Deep** | Comprensión total | 70% |
+| **Conceptmap** | Visualizar relaciones | 35% |
 
-## Testing
+## 💳 Modelo de Negocio
+
+### Free Tier
+- 5 resúmenes/mes
+- Máx 5,000 palabras
+- Solo modo "Study"
+- Sin PDF export
+- Bloqueo 24h al agotar
+
+### Pro Tier ($9.99/mes)
+- Resúmenes ilimitados
+- Máx 50,000 palabras
+- Todos los modos
+- PDF + Notion export
+- Historial ilimitado
+
+## 🔐 Seguridad
+
+- JWT tokens con NextAuth
+- Oauth con Google
+- Validación de inputs en todas partes
+- CORS configurado
+- Rate limiting en API
+- Datos encriptados en Supabase
+
+## 📊 Métricas de Éxito
+
+- **DAU/MAU**: >10% de usuarios activos
+- **Conversion rate**: >5% free → pro
+- **LTV:CAC**: >3:1
+- **Churn**: <5% mensual
+
+## 🚀 Deploy en Vercel
 
 ```bash
-# Backend tests
-cd backend
-npm run test
+# 1. Push a GitHub
+git push origin main
 
-# Frontend tests
-cd frontend
-npm run test
+# 2. Conectar a Vercel
+vercel link
+
+# 3. Configurar variables de entorno
+vercel env add NEXT_PUBLIC_SUPABASE_URL
+vercel env add NEXTAUTH_SECRET
+# ... (rest de variables)
+
+# 4. Deploy
+vercel --prod
 ```
 
-## Security
+## 📞 Soporte
 
-- Password hashing with bcrypt
-- JWT-based authentication
-- CORS protection
-- Input validation and sanitization
-- Helmet.js for HTTP headers
-- File type validation
-- Rate limiting on API endpoints
+- **Docs**: [DEPLOYMENT.md](./DEPLOYMENT.md)
+- **Issues**: GitHub Issues
+- **Email**: support@fidelis.app
 
-## Performance
+## 📄 Licencia
 
-- Async document processing
-- Caching mechanism for frequent queries
-- Optimized PDF extraction
-- Lazy loading of document previews
-- CDN-ready frontend build
+MIT
 
-## Browser Support
+## 🎉 Roadmap v2.0
 
-- Chrome/Edge (Latest)
-- Firefox (Latest)
-- Safari (Latest)
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## Known Limitations
-
-- Maximum file size: 50MB
-- PDF extraction quality depends on PDF structure
-- OCR accuracy varies with image quality
-- Concurrent uploads limited per user
-
-## Contributing
-
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Commit your changes (`git commit -m 'Add amazing feature'`)
-3. Push to the branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Check documentation in `/docs`
-- Review API reference in comments
-
-## Future Enhancements
-
-- [ ] Advanced NLP models for better summarization
-- [ ] Support for video transcript summarization
-- [ ] Collaborative sharing and comments
-- [ ] API rate limiting and usage analytics
-- [ ] Mobile app (iOS/Android)
-- [ ] Real-time collaboration features
-- [ ] Multi-language support enhancement
-- [ ] Custom summary templates
+- [ ] Integración con Notion API
+- [ ] Soporte para PDF nativos
+- [ ] Colaboración en tiempo real
+- [ ] Flashcards automáticas
+- [ ] Quiz interactivo
+- [ ] Comunidad de estudiantes
+- [ ] Marketplace de resúmenes
 
 ---
 
-**Built with precision for academic excellence** ✓
+**Hecho con ❤️ para estudiantes que quieren aprender bien**
+
+*"El resumen que NO inventa"* - FIDELIS
