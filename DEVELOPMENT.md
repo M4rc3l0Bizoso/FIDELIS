@@ -271,6 +271,52 @@ npm install --prefix frontend
 npm run build --prefix backend
 ```
 
+### Xcode Command Line Tools Error (macOS)
+
+**Error messages:**
+```
+xcode-select: error: invalid developer directory '/Library/Developer/CommandLineTools'
+
+OR
+
+No se puede instalar el software porque no está disponible en el servidor 
+de actualizaciones de software
+```
+
+**Quick fixes:**
+```bash
+# 1. Try to install or reset Xcode command line tools
+xcode-select --install
+
+# 2. If that fails, reset the path
+sudo xcode-select --reset
+
+# 3. If still failing, check internet and date/time
+date  # Verify date is correct
+
+# 4. Accept Xcode license
+sudo xcodebuild -license accept
+
+# 5. Retry npm install
+npm install --prefix backend
+npm install --prefix frontend
+```
+
+**If "Software not available on server" error persists:**
+```bash
+# Clear network cache
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
+
+# Clear Software Update cache
+sudo rm -rf ~/Library/Caches/com.apple.dt.Xcode
+
+# Try again
+xcode-select --install
+```
+
+For detailed solutions and troubleshooting, see [SETUP.md - Xcode Command Line Tools Error](./SETUP.md#xcode-command-line-tools-error-macos)
+
 ## Code Style
 
 We follow:
