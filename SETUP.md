@@ -263,6 +263,87 @@ npm rebuild
 npm install --build=from-source tesseract.js
 ```
 
+### Xcode Command Line Tools Error (macOS)
+
+**Error message:**
+```
+xcode-select: error: invalid developer directory '/Library/Developer/CommandLineTools'
+Failed during: /usr/bin/sudo /usr/bin/xcode-select --switch /Library/Developer/CommandLineTools
+```
+
+**Solution:**
+
+This error occurs when Xcode command line tools are missing, corrupted, or misconfigured. Follow these steps to fix it:
+
+#### Option 1: Install Xcode Command Line Tools (Recommended)
+```bash
+# Install Xcode command line tools
+xcode-select --install
+
+# When prompted, click "Install" to download and install the tools
+# This may take 10-15 minutes
+
+# Verify installation
+xcode-select -p
+# Should output: /Applications/Xcode.app/Contents/Developer
+# OR: /Library/Developer/CommandLineTools
+```
+
+#### Option 2: Reset Xcode Path
+```bash
+# If Xcode is already installed but path is broken
+sudo xcode-select --reset
+
+# Verify it worked
+xcode-select -p
+```
+
+#### Option 3: Set Xcode Path Manually
+```bash
+# If you have Xcode installed separately
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+
+# Verify
+xcode-select -p
+```
+
+**After fixing Xcode tools:**
+```bash
+# Accept Xcode license
+sudo xcode-select --install
+sudo xcodebuild -license accept
+
+# Then retry npm install
+cd backend
+npm install
+
+cd ../frontend
+npm install
+```
+
+**If npm still fails after installing Xcode tools:**
+```bash
+# Clear npm cache completely
+npm cache clean --force
+
+# Delete all node_modules
+rm -rf backend/node_modules frontend/node_modules
+
+# Reinstall with verbose output to see errors
+npm install --verbose --prefix backend
+npm install --verbose --prefix frontend
+```
+
+**Verify Xcode tools are working:**
+```bash
+# Check that build tools are accessible
+gcc --version
+make --version
+g++ --version
+
+# All should return version information, not errors
+```
+
 ## Production Setup
 
 ### Build for Production

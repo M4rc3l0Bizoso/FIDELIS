@@ -271,6 +271,32 @@ npm install --prefix frontend
 npm run build --prefix backend
 ```
 
+### Xcode Command Line Tools Error (macOS)
+
+**Error message:**
+```
+xcode-select: error: invalid developer directory '/Library/Developer/CommandLineTools'
+```
+
+**Quick fix:**
+```bash
+# Install or reset Xcode command line tools
+xcode-select --install
+
+# Or reset if already installed
+sudo xcode-select --reset
+
+# Accept Xcode license
+sudo xcode-select --install
+sudo xcodebuild -license accept
+
+# Retry npm install
+npm install --prefix backend
+npm install --prefix frontend
+```
+
+For detailed solutions, see [SETUP.md - Xcode Command Line Tools Error](./SETUP.md#xcode-command-line-tools-error-macos)
+
 ## Code Style
 
 We follow:
