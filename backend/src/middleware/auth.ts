@@ -35,7 +35,8 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
 }
 
 export function generateToken(userId: string, email: string): string {
-  return jwt.sign({ id: userId, email }, process.env.JWT_SECRET || 'your-secret-key', {
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+  const secret = process.env.JWT_SECRET || 'your-secret-key';
+  return jwt.sign({ id: userId, email }, secret, {
+    expiresIn: '24h' as any,
   });
 }

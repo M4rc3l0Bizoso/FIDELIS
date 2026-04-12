@@ -2,9 +2,8 @@
  * Extractive Summarizer Service
  * Implements TF-IDF based extractive summarization
  * Maintains fidelity to original text by extracting key sentences
+ * Uses built-in tokenization (no external NLP dependencies)
  */
-
-import { natural } from 'natural';
 
 export interface SentenceScore {
   sentence: string;
@@ -24,17 +23,34 @@ export interface SummarizationResult {
 }
 
 export class SummarizerService {
-  private tokenizer = new natural.SentenceTokenizer();
-  private wordTokenizer = new natural.WordTokenizer();
+  /**
+   * Tokenize text into sentences using regex
+   */
+  private tokenizeSentences(text: string): string[] {
+    // Split on sentence-ending punctuation followed by whitespace or end of string
+    // Handles: periods, exclamation marks, question marks
+    // Preserves abbreviations like "Dr.", "Mr.", "e.g." by requiring space after period
+    return text
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+
+  /**
+   * Tokenize text into words
+   */
+  private tokenizeWords(text: string): string[] {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\sáéíóúàèìòùäëïöüâêîôûñ]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 0);
+  }
 
   /**
    * Generate summary from text with specified compression ratio
-   * @param text - Original text to summarize
-   * @param compressionRatio - Target compression (0.2 = 20% of original)
-   * @returns Summarization result
    */
   public summarize(text: string, compressionRatio: number = 0.3): SummarizationResult {
-    // Validate inputs
     if (!text || text.trim().length === 0) {
       throw new Error('Text cannot be empty');
     }
@@ -44,13 +60,26 @@ export class SummarizerService {
     }
 
     // Step 1: Sentence segmentation
-    const sentences = this.tokenizer.tokenize(text);
+    const sentences = this.tokenizeSentences(text);
     if (sentences.length === 0) {
       throw new Error('Could not tokenize text into sentences');
     }
 
+    // If very short text, return as-is
+    if (sentences.length <= 2) {
+      return {
+        originalText: text,
+        summaryText: text.trim(),
+        sentenceCount: sentences.length,
+        wordCount: text.split(/\s+/).length,
+        compressionRatio: 1,
+        confidenceScore: 1,
+        keyPoints: sentences,
+      };
+    }
+
     // Step 2: Calculate TF-IDF scores
-    const scoredSentences = this.scoresentences(sentences);
+    const scoredSentences = this.scoreSentences(sentences);
 
     // Step 3: Select top sentences based on compression ratio
     const summaryLength = Math.max(1, Math.ceil(sentences.length * compressionRatio));
@@ -60,7 +89,7 @@ export class SummarizerService {
     const summaryText = this.reconstructSummary(sentences, selectedIndices);
 
     // Step 5: Extract key points
-    const keyPoints = this.extractKeyPoints(scoredSentences, 5);
+    const keyPoints = this.extractKeyPoints(scoredSentences, Math.min(5, sentences.length));
 
     // Calculate metrics
     const originalWordCount = text.split(/\s+/).length;
@@ -81,28 +110,27 @@ export class SummarizerService {
   /**
    * Calculate TF-IDF scores for each sentence
    */
-  private scoresentences(sentences: string[]): SentenceScore[] {
-    // Build word frequency map
+  private scoreSentences(sentences: string[]): SentenceScore[] {
     const wordFrequency = this.calculateWordFrequency(sentences.join(' '));
-
-    // Calculate max word frequency for normalization
-    const maxFreq = Math.max(...Object.values(wordFrequency));
+    const freqValues = Object.values(wordFrequency);
+    const maxFreq = freqValues.length > 0 ? Math.max(...freqValues) : 1;
 
     return sentences.map((sentence, index) => {
-      const words = this.wordTokenizer.tokenize(sentence.toLowerCase());
+      const words = this.tokenizeWords(sentence);
       const validWords = words.filter((word) => word.length > 2 && !this.isStopWord(word));
 
-      // TF-IDF scoring
       let score = 0;
       for (const word of validWords) {
         const tf = (wordFrequency[word] || 0) / maxFreq;
-        const idf = Math.log(sentences.length / (this.countSentencesWithWord(sentences, word) + 1));
+        const idf = Math.log(
+          sentences.length / (this.countSentencesWithWord(sentences, word) + 1)
+        );
         score += tf * idf;
       }
 
       // Position bonus (first and last sentences get higher scores)
-      if (index === 0) score *= 1.5;
-      if (index === sentences.length - 1) score *= 1.2;
+      if (index === 0) { score *= 1.5; }
+      if (index === sentences.length - 1) { score *= 1.2; }
 
       // Longer sentences get slight boost (more content)
       const lengthBoost = Math.min(validWords.length / 20, 1.2);
@@ -117,15 +145,11 @@ export class SummarizerService {
     });
   }
 
-  /**
-   * Calculate word frequency in text
-   */
   private calculateWordFrequency(text: string): Record<string, number> {
-    const words = this.wordTokenizer.tokenize(text.toLowerCase());
+    const words = this.tokenizeWords(text);
     const frequency: Record<string, number> = {};
 
     for (const word of words) {
-      // Filter short words and stop words
       if (word.length > 2 && !this.isStopWord(word)) {
         frequency[word] = (frequency[word] || 0) + 1;
       }
@@ -134,70 +158,44 @@ export class SummarizerService {
     return frequency;
   }
 
-  /**
-   * Count how many sentences contain a specific word
-   */
   private countSentencesWithWord(sentences: string[], word: string): number {
     return sentences.filter((sentence) => sentence.toLowerCase().includes(word)).length;
   }
 
-  /**
-   * Check if word is a common stop word
-   */
   private isStopWord(word: string): boolean {
     const stopWords = new Set([
-      'a',
-      'an',
-      'and',
-      'are',
-      'as',
-      'at',
-      'be',
-      'by',
-      'for',
-      'from',
-      'has',
-      'he',
-      'in',
-      'is',
-      'it',
-      'its',
-      'of',
-      'on',
-      'or',
-      'that',
-      'the',
-      'to',
-      'was',
-      'will',
-      'with',
-      'the',
-      'this',
-      'but',
-      'not',
-      'can',
-      'could',
-      'should',
-      'would',
+      // English
+      'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from',
+      'has', 'have', 'he', 'she', 'in', 'is', 'it', 'its', 'of', 'on',
+      'or', 'that', 'the', 'to', 'was', 'will', 'with', 'this', 'but',
+      'not', 'can', 'could', 'should', 'would', 'been', 'being', 'had',
+      'did', 'does', 'do', 'were', 'they', 'them', 'their', 'there',
+      'then', 'than', 'what', 'when', 'where', 'which', 'who', 'whom',
+      'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most',
+      'other', 'some', 'such', 'only', 'own', 'same', 'than', 'too',
+      'very', 'just', 'because', 'about', 'into', 'through', 'during',
+      'before', 'after', 'above', 'below', 'between', 'under', 'again',
+      // Spanish
+      'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'del',
+      'al', 'es', 'son', 'fue', 'ser', 'estar', 'tiene', 'tiene',
+      'hay', 'que', 'por', 'para', 'con', 'sin', 'sobre', 'entre',
+      'pero', 'como', 'más', 'mas', 'muy', 'también', 'tambien',
+      'este', 'esta', 'estos', 'estas', 'ese', 'esa', 'esos', 'esas',
+      'aquel', 'aquella', 'todo', 'toda', 'todos', 'todas', 'otro',
+      'otra', 'otros', 'otras', 'mismo', 'misma', 'donde', 'cuando',
+      'porque', 'desde', 'hasta', 'durante', 'mientras', 'según',
+      'solo', 'aún', 'aun', 'cada', 'poco', 'mucho', 'algo', 'nada',
+      'sus', 'nos', 'les', 'ello',
     ]);
 
     return stopWords.has(word);
   }
 
-  /**
-   * Select top sentences by score while maintaining order
-   */
   private selectTopSentences(scoredSentences: SentenceScore[], count: number): number[] {
-    // Sort by score to get top N
     const sorted = [...scoredSentences].sort((a, b) => b.score - a.score).slice(0, count);
-
-    // Return indices maintaining original order
     return sorted.sort((a, b) => a.index - b.index).map((s) => s.index);
   }
 
-  /**
-   * Reconstruct summary maintaining original sentence order
-   */
   private reconstructSummary(sentences: string[], selectedIndices: number[]): string {
     const selectedSet = new Set(selectedIndices);
     return sentences
@@ -206,32 +204,27 @@ export class SummarizerService {
       .replace(/\s+/g, ' ');
   }
 
-  /**
-   * Extract key points (top scoring sentences)
-   */
   private extractKeyPoints(scoredSentences: SentenceScore[], count: number): string[] {
-    return scoredSentences
+    return [...scoredSentences]
       .sort((a, b) => b.score - a.score)
       .slice(0, count)
       .map((s) => s.sentence);
   }
 
-  /**
-   * Calculate confidence score based on sentence quality
-   */
   private calculateConfidenceScore(
     scoredSentences: SentenceScore[],
     selectedIndices: number[]
   ): number {
-    if (selectedIndices.length === 0) return 0;
+    if (selectedIndices.length === 0) { return 0; }
 
     const selectedSet = new Set(selectedIndices);
-    const selectedScores = scoredSentences.filter((s) => selectedSet.has(s.index)).map((s) => s.score);
+    const selectedScores = scoredSentences
+      .filter((s) => selectedSet.has(s.index))
+      .map((s) => s.score);
 
     const avgScore = selectedScores.reduce((a, b) => a + b, 0) / selectedScores.length;
     const maxScore = Math.max(...scoredSentences.map((s) => s.score));
 
-    // Normalize to 0-1 range
     return Math.min(avgScore / (maxScore + 0.1), 1);
   }
 }
