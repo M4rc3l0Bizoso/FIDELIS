@@ -265,17 +265,23 @@ npm install --build=from-source tesseract.js
 
 ### Xcode Command Line Tools Error (macOS)
 
-**Error message:**
+**Error 1: Invalid developer directory**
 ```
 xcode-select: error: invalid developer directory '/Library/Developer/CommandLineTools'
 Failed during: /usr/bin/sudo /usr/bin/xcode-select --switch /Library/Developer/CommandLineTools
 ```
 
+**Error 2: Software not available on update server**
+```
+No se puede instalar el software porque no está disponible en el servidor 
+de actualizaciones de software
+```
+
 **Solution:**
 
-This error occurs when Xcode command line tools are missing, corrupted, or misconfigured. Follow these steps to fix it:
+#### For Error 1 (Invalid directory):
 
-#### Option 1: Install Xcode Command Line Tools (Recommended)
+**Option 1: Install Xcode Command Line Tools (Recommended)**
 ```bash
 # Install Xcode command line tools
 xcode-select --install
@@ -289,7 +295,7 @@ xcode-select -p
 # OR: /Library/Developer/CommandLineTools
 ```
 
-#### Option 2: Reset Xcode Path
+**Option 2: Reset Xcode Path**
 ```bash
 # If Xcode is already installed but path is broken
 sudo xcode-select --reset
@@ -298,7 +304,7 @@ sudo xcode-select --reset
 xcode-select -p
 ```
 
-#### Option 3: Set Xcode Path Manually
+**Option 3: Set Xcode Path Manually**
 ```bash
 # If you have Xcode installed separately
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
@@ -307,10 +313,72 @@ sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 xcode-select -p
 ```
 
-**After fixing Xcode tools:**
+#### For Error 2 (Software not available on server):
+
+This error occurs when macOS cannot download from Apple's servers. Try these solutions:
+
+**Solution 1: Check Internet Connection**
+```bash
+# Test connectivity to Apple servers
+ping -c 3 apple.com
+curl -I https://developer.apple.com
+```
+
+**Solution 2: Set Correct Date/Time**
+```bash
+# Date/time issues can prevent downloads
+# Go to: System Preferences > Date & Time
+# Or use terminal:
+date  # Check current date/time
+
+# If incorrect, set it manually or enable "Set date and time automatically"
+```
+
+**Solution 3: Reset Network Settings**
+```bash
+# Sometimes network cache causes issues
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
+
+# Restart WiFi
+networksetup -setairportpower en0 off
+sleep 2
+networksetup -setairportpower en0 on
+```
+
+**Solution 4: Clear Software Update Cache**
+```bash
+# Remove cached updates
+sudo rm -rf /var/db/software_update_check.plist
+sudo rm -rf ~/Library/Caches/com.apple.dt.Xcode
+sudo rm -rf ~/Library/Caches/com.apple.nsurlsessiond
+
+# Try installation again
+xcode-select --install
+```
+
+**Solution 5: Install via App Store (Alternative)**
+```bash
+# If command line install fails, try installing Xcode from App Store
+# Then use it as the default:
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+
+# Accept license
+sudo xcodebuild -license accept
+```
+
+**Solution 6: Download Directly from Apple (If all else fails)**
+```bash
+# Visit: https://developer.apple.com/download/
+# Login with Apple ID
+# Download "Command Line Tools for Xcode" directly
+# Install the .dmg file manually
+```
+
+#### After Fixing Xcode Tools:
+
 ```bash
 # Accept Xcode license
-sudo xcode-select --install
 sudo xcodebuild -license accept
 
 # Then retry npm install
@@ -321,7 +389,7 @@ cd ../frontend
 npm install
 ```
 
-**If npm still fails after installing Xcode tools:**
+**If npm still fails:**
 ```bash
 # Clear npm cache completely
 npm cache clean --force
@@ -329,7 +397,7 @@ npm cache clean --force
 # Delete all node_modules
 rm -rf backend/node_modules frontend/node_modules
 
-# Reinstall with verbose output to see errors
+# Reinstall with verbose output
 npm install --verbose --prefix backend
 npm install --verbose --prefix frontend
 ```
@@ -343,6 +411,14 @@ g++ --version
 
 # All should return version information, not errors
 ```
+
+#### Troubleshooting Checklist:
+- [ ] Internet connection is stable
+- [ ] Date and time are correct
+- [ ] No VPN or proxy blocking Apple servers
+- [ ] Enough disk space available (at least 5GB)
+- [ ] Not behind strict firewall
+- [ ] Apple's servers are not down (check: https://www.apple.com/systatus/)
 
 ## Production Setup
 
