@@ -12,6 +12,10 @@ node_modules/
 /dist
 /out
 
+# Next.js
+/.next/
+*.tsbuildinfo
+
 # Environment
 .env
 .env.local

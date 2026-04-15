@@ -1,9 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
+import type { SummaryContent } from "@/types";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase environment variables");
+  }
+  return createClient(supabaseUrl, supabaseKey);
+}
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = (() => {
+  try {
+    return getSupabaseClient();
+  } catch {
+    // Return a proxy that throws on use - allows module to load at build time
+    return new Proxy({} as ReturnType<typeof createClient>, {
+      get() {
+        throw new Error("Supabase client not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+      },
+    });
+  }
+})();
 
 export async function getDocument(documentId: string) {
   const { data, error } = await supabase
@@ -41,7 +59,7 @@ export async function createDocument(
 export async function saveSummary(
   documentId: string,
   mode: string,
-  summaryJson: any,
+  summaryJson: SummaryContent,
   tokensUsed: number,
   confidenceScore: number
 ) {
@@ -72,7 +90,7 @@ export async function getUserCredits(userId: string) {
   return data;
 }
 
-export async function useCredit(userId: string) {
+export async function deductCredit(userId: string) {
   const credits = await getUserCredits(userId);
 
   if (credits.blocked_until && new Date(credits.blocked_until) > new Date()) {

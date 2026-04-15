@@ -1,30 +1,30 @@
-import type { Metadata } from 'next'
-import { SessionProvider } from 'next-auth/react'
-import { auth } from '@/lib/auth'
-import '@/styles/globals.css'
+import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import Providers from "./providers";
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: '✨ FIDELIS - Resumidor Académico con IA',
-  description: 'El resumen que NO inventa. Fidelidad 100% al contenido original.',
+  title: "FIDELIS - Resumidor Académico con IA",
+  description:
+    "El resumen que NO inventa. Fidelidad 100% al contenido original.",
   icons: {
-    icon: '/favicon.ico',
+    icon: "/favicon.ico",
   },
-}
+};
 
 export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const session = await auth()
+  const session = await getServerSession(authOptions);
 
   return (
     <html lang="es">
       <body>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
+        <Providers session={session}>{children}</Providers>
       </body>
     </html>
-  )
+  );
 }
