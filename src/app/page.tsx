@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { signIn } from 'next-auth/react';
-import Link from 'next/link';
 
 export default function LandingPage() {
   const features = [
@@ -147,7 +146,7 @@ export default function LandingPage() {
             <ul className="space-y-3 mb-8 text-gray-300">
               <li>✓ 5 resúmenes/mes</li>
               <li>✓ Hasta 5,000 palabras</li>
-              <li>✓ Modo "Estudio"</li>
+              <li>✓ Modo &ldquo;Estudio&rdquo;</li>
               <li>✓ Trazabilidad completa</li>
             </ul>
             <button

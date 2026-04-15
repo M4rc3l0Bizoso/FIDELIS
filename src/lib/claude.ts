@@ -1,7 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ValidationResult, SummaryContent } from "@/types";
 
-const client = new Anthropic();
+let _client: Anthropic | null = null;
+function getClient() {
+  if (!_client) {
+    _client = new Anthropic();
+  }
+  return _client;
+}
 
 const SYSTEM_PROMPT = `You are FIDELIS, an academic text summarizer with ABSOLUTE FIDELITY to source material.
 
@@ -154,6 +160,7 @@ Return VALID JSON (no markdown, no formatting) with this exact structure:
         "concept_a": "A",
         "concept_b": "B",
         "relationship": "How they relate",
+        "evidence": "Supporting evidence from text",
         "source_paragraph": 5
       }
     ],
@@ -177,17 +184,16 @@ Return VALID JSON (no markdown, no formatting) with this exact structure:
     ],
     "trace_mapping": [
       {
-        "summary_section": 0,
+        "summary_section_id": 0,
         "source_paragraph": 1,
         "confidence": 0.95
       }
     ]
   },
   "metadata": {
-    "sections_created": 3,
-    "key_concepts_extracted": 5,
-    "exam_questions_generated": 4,
-    "ambiguities_detected": 1
+    "total_tokens": 0,
+    "processing_time_ms": 0,
+    "overall_confidence": 0.85
   }
 }
 
@@ -199,7 +205,7 @@ CRITICAL:
 - Keep confidence scores realistic`;
 
   try {
-    const response = await client.messages.create({
+    const response = await getClient().messages.create({
       model: "claude-3-5-sonnet-20241022",
       max_tokens: 4000,
       system: SYSTEM_PROMPT,
@@ -273,7 +279,7 @@ Return JSON:
   "warnings": ["Any issues found"]
 }`;
 
-  const response = await client.messages.create({
+  const response = await getClient().messages.create({
     model: "claude-3-5-sonnet-20241022",
     max_tokens: 2000,
     messages: [
@@ -289,8 +295,15 @@ Return JSON:
     throw new Error("No validation response");
   }
 
-  const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
-  return JSON.parse(jsonMatch![0]);
+  let result: ValidationResult;
+  try {
+    result = JSON.parse(textContent.text);
+  } catch {
+    const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("Invalid JSON in validation response");
+    result = JSON.parse(jsonMatch[0]);
+  }
+  return result;
 }
 
 function calculateWordLimit(originalWords: number, mode: string): number {

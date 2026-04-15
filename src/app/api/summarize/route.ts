@@ -1,12 +1,13 @@
-import { auth } from "@/lib/auth";
-import { supabase, useCredit, createDocument, saveSummary } from "@/lib/supabase";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { supabase, deductCredit, createDocument, saveSummary } from "@/lib/supabase";
 import { summarizeText, validateSummary } from "@/lib/claude";
 import { SummarizeRequest, SummarizeResponse } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest): Promise<NextResponse<SummarizeResponse>> {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -54,10 +55,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<Summarize
 
     let creditsRemaining;
     try {
-      const creditResult = await useCredit(session.user.id);
+      const creditResult = await deductCredit(session.user.id);
       creditsRemaining = creditResult.remaining;
-    } catch (creditError: any) {
-      if (creditError.message.includes('blocked')) {
+    } catch (creditError) {
+      if (creditError instanceof Error && creditError.message.includes('blocked')) {
         const { data: credits } = await supabase
           .from('credits')
           .select('blocked_until')
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Summarize
           {
             success: false,
             error: "No credits available",
-            blocked_until: credits?.data?.blocked_until,
+            blocked_until: credits?.blocked_until,
           },
           { status: 429 }
         );
